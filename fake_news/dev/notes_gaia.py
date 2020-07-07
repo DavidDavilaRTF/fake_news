@@ -12,6 +12,7 @@ k = 1
 wds = web_driver_selenium()
 wds.create_browser()
 note = []
+k = 0
 for u in url:
     # text_gaia = ''
     # wds.get_to_page(u)
@@ -34,6 +35,8 @@ for u in url:
         except:
             pass
     note.append(wds.find_attribute(element,''))
+    k += 1
+    print((k,len(url)))
 wds.close_browser()
 url = pandas.DataFrame(url)
 url.columns = ['lien']
