@@ -78,10 +78,18 @@ class trainning_netflix:
             for col_y in self.y_train:
                 cor_xy = []
                 for c in self.x_train:
-                    cor_xy.append(abs(self.y_train[col_y].corr(self.x_train[c])))
-                cor_xy = numpy.array(cor_xy)
-                sel = cor_xy.astype(str) == 'nan'
-                cor_xy[sel] = 0
+                    if numpy.var(self.x_train[c]) > 0:
+                        self.x_train[c] = (numpy.array(self.x_train) - numpy.mean(self.x_train)) / numpy.var(self.x_train)
+                model = linear_model.LinearRegression()
+                model.fit(self.x_train,self.y_train[col_y])
+                cor_xy = numpy.abs(model.coef_)
+
+                # for c in self.x_train:
+                #     cor_xy.append(abs(self.y_train[col_y].corr(self.x_train[c])))
+                # cor_xy = numpy.array(cor_xy)
+                # sel = cor_xy.astype(str) == 'nan'
+                # cor_xy[sel] = 0
+
                 cor_xy = pandas.DataFrame(cor_xy)
                 cor_xy.columns = ['corr']
                 cor_xy = cor_xy.sort_values(['corr'],ascending = False)
@@ -142,14 +150,23 @@ class trainning_netflix:
             col_y_i = 0
             for col_y in self.y_train:
                 cor_xy = []
+                # for c in self.x_train:
+                #     if numpy.var(self.x_train[c]) > 0:
+                #         self.x_train[c] = (numpy.array(self.x_train[c]) - numpy.mean(self.x_train[c])) / numpy.var(self.x_train[c])
+                # model = linear_model.LinearRegression()
+                # model.fit(self.x_train,self.y_train[col_y])
+                # cor_xy = numpy.abs(model.coef_)
+
                 for c in self.x_train:
                     cor_xy.append(abs(self.y_train[col_y].corr(self.x_train[c])))
                 cor_xy = numpy.array(cor_xy)
                 sel = cor_xy.astype(str) == 'nan'
                 cor_xy[sel] = 0
+
                 cor_xy = pandas.DataFrame(cor_xy)
                 cor_xy.columns = ['corr']
                 cor_xy = cor_xy.sort_values(['corr'],ascending = False)
+                k = 1
                 col_x = self.x_train.columns
                 
                 x_an_train = self.x_train[col_x[cor_xy.index[0:int(self.prop_db * len(col_x))]]]
@@ -214,7 +231,8 @@ class trainning_netflix:
         self.mes.to_csv('C:/fake_news/model_outecomes_' + str(self.model_type) + '_' + str(self.prop_db) + '.csv',sep = ';',index = False)
 
 model_type = ['deeplearning','rf','logistic','xgboost']
-db = pandas.read_csv('C:/fake_news/doc/note_title.csv',engine = 'python',sep = ';')
+model_type = ['rf']
+db = pandas.read_csv('C:/fake_news/doc/bdd_text.csv',engine = 'python',sep = ';')
 sel_nan = db['note_fb'].apply(lambda x: str(x).lower() != 'nan')
 db = db[sel_nan]
 db.index = range(len(db))
@@ -237,7 +255,7 @@ nb_var_couche = [0]
 nb_var_select = 10
 nb_couches = len(nb_var_couche)
 nb_split_cor = 10
-for prop in range(nb_split_cor):
+for prop in [1]:
     for m in model_type:
         tn = trainning_netflix(db = db,
                                 pct = 0.1,
@@ -245,7 +263,7 @@ for prop in range(nb_split_cor):
                                 nb_couches = nb_couches,
                                 nb_var_select = nb_var_select,
                                 nb_var_couche = nb_var_couche,
-                                cv = 1,
+                                cv = 10,
                                 nb_split = 10,
                                 prop_db = (prop + 1) / nb_split_cor,
                                 model_type = m)

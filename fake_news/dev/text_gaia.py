@@ -20,7 +20,10 @@ for u in url['lien']:
     element = page.xpath('//p//text()')
     for e in element:
         text_gaia += e + ' '
+    text_gaia = text_gaia.replace(';',',')
+    text_gaia = text_gaia.replace('\n',' ')
     url['text'].iloc[k] = text_gaia
     k += 1
     print((k,len(url)))
-url.to_csv('C:/fake_news/doc/note_text.csv',sep = ';',index = False)
+    if k % 100 == 0:
+        url.to_csv('C:/fake_news/doc/note_text.csv',sep = ';',index = False)
